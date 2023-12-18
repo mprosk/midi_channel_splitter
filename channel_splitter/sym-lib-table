@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "MCU_Microchip_ATMega_Alternate")(type "KiCad")(uri "${KIPRJMOD}/MCU_Microchip_ATMega_Alternate.kicad_sym")(options "")(descr ""))
+  (lib (name "kosmo-lib")(type "KiCad")(uri "${KIPRJMOD}/kosmo-lib/kosmo-lib.kicad_sym")(options "")(descr ""))
+)
