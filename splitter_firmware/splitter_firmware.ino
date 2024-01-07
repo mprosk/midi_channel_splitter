@@ -2,29 +2,11 @@
  *  MIDI Channel Splitter
  *
  *  DESCRIPTION
- *      <<TODO>> Tells you what the code in the file does or refers to
- *      accompanying header file.
+ *      Splits a single MIDI connection into multiple ports.
+ *      Each port only contains Channel Messages for a single channel.
+ *      System messages are sent to all ports.
  *
- *  REFERENCES
- *      <<TODO>> Requirements Specification
- *      <<TODO>> Software Specification
  ***********************************************************************/
-
-/*=====================================================================*
-    Local Header Files
- *=====================================================================*/
-
-
-/*=====================================================================*
-    Interface Header Files
- *=====================================================================*/
-/* None */
-
-
-/*=====================================================================*
-    System-wide Header Files
- *=====================================================================*/
-/* None */
 
 /*=====================================================================*
     Pin Defines
@@ -45,27 +27,11 @@
 #define NUM_PORTS               (4)     // Number of output ports
 
 /*=====================================================================*
-    Private Data Types
- *=====================================================================*/
-
-/*=====================================================================*
-    Private Function Prototypes
- *=====================================================================*/
-/* None */
-
-
-/*=====================================================================*
-    Private Constants
- *=====================================================================*/
-
-
-/*=====================================================================*
     Private Data
  *=====================================================================*/
 static uint8_t port[NUM_PORTS] = {PIN_PORT_A, PIN_PORT_B, PIN_PORT_C, PIN_PORT_D};
 static uint8_t channels[NUM_PORTS] = {0, 1, 2, 3};
-static uint8_t config = 0;
-
+static uint8_t config = 0xFF;
 
 /*=====================================================================*
     Arduino Hooks
@@ -86,6 +52,7 @@ void setup()
     pinMode(PIN_CFG2, INPUT_PULLUP);
 
     pinMode(PIN_LED, OUTPUT);
+    digitalWrite(PIN_LED, HIGH);
 }
 
 
@@ -111,12 +78,11 @@ void loop()
         else
         {
             // This byte is for a specific channel
-            disable_all_ports();
             for (uint8_t i = 0; i < NUM_PORTS; i++)
             {
                 if (channels[i] == msg_channel)
                 {
-                    digitalWrite(port[i], LOW);
+                    enable_port(i);
                     break;
                 }
             }
@@ -184,7 +150,7 @@ uint8_t parse_midi(uint8_t byte)
  *---------------------------------------------------------------------*/
 void update_config(void)
 {
-    uint8_t new_config = (digitalRead(PIN_CFG1) << 1) | digitalRead(PIN_CFG2);
+    uint8_t new_config = (~((digitalRead(PIN_CFG1) << 1) | digitalRead(PIN_CFG2))) & 0b11;
     if (new_config != config)
     {
         config = new_config;
@@ -193,6 +159,24 @@ void update_config(void)
         channels[2] = (config << 2) + 2;
         channels[3] = (config << 2) + 3;
     }
+}
+
+/*---------------------------------------------------------------------*
+ *  NAME
+ *      enable_all_ports
+ * 
+ *  DESCRIPTION
+ *      Enables all four output ports
+ * 
+ *  RETURNS
+ *      None
+ *---------------------------------------------------------------------*/
+void enable_port(uint8_t port_index)
+{
+    digitalWrite(PIN_PORT_A, port_index != 0);
+    digitalWrite(PIN_PORT_B, port_index != 1);
+    digitalWrite(PIN_PORT_C, port_index != 2);
+    digitalWrite(PIN_PORT_D, port_index != 3);
 }
 
 /*---------------------------------------------------------------------*
